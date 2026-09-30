@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Officials carry custom claims set by /api/officials: role, state, district (null = whole state).
+    function role() { return request.auth.token.get('role', ''); }
+    function officialFor(d) {
+      return role() == 'superadmin'
+        || (role() == 'admin'
+            && d.state == request.auth.token.state
+            && (request.auth.token.get('district', null) == null || d.district == request.auth.token.district));
+    }
+
+    // Citizen profiles: each user can read and write only their own.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["name", "email", "state", "district", "place", "createdAt"])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.state is string && request.resource.data.state.size() > 0 && request.resource.data.state.size() <= 60
+        && request.resource.data.district is string && request.resource.data.district.size() > 0 && request.resource.data.district.size() <= 60
+        && request.resource.data.place is string && request.resource.data.place.size() > 0 && request.resource.data.place.size() <= 100;
+    }
+
+    // Requests: the citizen who raised it, or officials for that area. Writes go through the API (Admin SDK).
+    match /requests/{id} {
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || officialFor(resource.data));
+    }
+
+    // Internal notes: officials for that area only.
+    // A missing note must be readable too, or the live listener errors out before the first save.
+    match /requestNotes/{id} {
+      allow read: if request.auth != null && (resource == null ? role() != '' : officialFor(resource.data));
+    }
+
+    // Announcements are public to signed-in users.
+    match /announcements/{id} {
+      allow read: if request.auth != null;
+    }
+
+    // officials/*, pushTokens/* and everything else: server only (Admin SDK bypasses these rules).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

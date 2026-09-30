@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans), var(--font-noto), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * Theme palette: #d7dace sage · #ffe9b3 cream · #ffdc74 yellow · #ffc176 apricot.
+ * `indigo-*` → sage ink scale built on #d7dace (200); dark end carries text, sidebar, primary buttons.
+ * `orange-*` → cream/yellow/apricot (100/200/500); 600+ darkened for text on white.
+ * `slate-*`  → warm sage neutrals so greys match the palette.
+ * ponytail: remapping the scales keeps every existing class working; rename only if it confuses.
+ * Contrast: ink-950 on orange-500 = 10.5:1; orange-700 on white = 6.4:1; slate-500 on white = 5.4:1.
+ */
+@theme {
+  --color-indigo-50: #f4f5f1;
+  --color-indigo-100: #e8eae2;
+  --color-indigo-200: #d7dace;
+  --color-indigo-300: #bcc1ae;
+  --color-indigo-400: #9ba28a;
+  --color-indigo-500: #7c846a;
+  --color-indigo-600: #626a52;
+  --color-indigo-700: #4d5441;
+  --color-indigo-800: #3a4032;
+  --color-indigo-900: #2a2f24;
+  --color-indigo-950: #1b1f17;
+
+  --color-orange-50: #fff8e6;
+  --color-orange-100: #ffe9b3;
+  --color-orange-200: #ffdc74;
+  --color-orange-300: #ffd08a;
+  --color-orange-400: #ffc882;
+  --color-orange-500: #ffc176;
+  --color-orange-600: #a8641a;
+  --color-orange-700: #8a5214;
+  --color-orange-800: #6e4212;
+  --color-orange-900: #573512;
+  --color-orange-950: #331e08;
+
+  --color-slate-50: #f7f8f4;
+  --color-slate-100: #eef0e9;
+  --color-slate-200: #e0e3d8;
+  --color-slate-300: #c9cdbd;
+  --color-slate-400: #9ea393;
+  --color-slate-500: #65695c;
+  --color-slate-600: #555a4d;
+  --color-slate-700: #42463b;
+  --color-slate-800: #2f3229;
+  --color-slate-900: #20231c;
+  --color-slate-950: #141612;
 }
+
+/* Light only: keeps native controls (selects, scrollbars, date pickers) light even when the OS is in dark mode. */
+:root { color-scheme: light; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f5f1;
+  color: #1b1f17;
 }
+
+::selection {
+  background: var(--color-orange-200);
+  color: var(--color-indigo-950);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-in { animation: fade-in 0.35s ease-out both; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.wave-bar { animation: wave 0.9s ease-in-out infinite; transform-origin: center; }
+
+@keyframes progress { from { width: 0; } to { width: 100%; } }
