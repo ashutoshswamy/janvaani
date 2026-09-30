@@ -20,6 +20,7 @@ import { LangSelect } from "@/components/lang-select";
 import { LocationFields, type Location } from "@/components/location-fields";
 import { btn, Card, cx, input, Logo, Spinner } from "@/components/ui";
 import { toast } from "@/components/toast";
+import { PasswordInput } from "@/components/password-input";
 
 const saveProfile = (uid: string, name: string, email: string, loc: Location) =>
   setDoc(doc(db, "users", uid), { name: name.trim(), email, ...loc, place: loc.place.trim(), createdAt: serverTimestamp() });
@@ -144,7 +145,7 @@ export default function Login() {
       <form onSubmit={submitEmail} className="space-y-3">
         {mode === "signup" && <input required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder={a.name} autoComplete="name" className={input} />}
         <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={a.email} autoComplete="email" className={input} />
-        <input required type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={a.password} autoComplete={mode === "signin" ? "current-password" : "new-password"} className={input} />
+        <PasswordInput required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={a.password} autoComplete={mode === "signin" ? "current-password" : "new-password"} />
         {mode === "signup" && <LocationFields value={loc} onChange={setLoc} />}
         {error && <p role="alert" className="text-sm text-red-600">{a[error]}</p>}
         <button disabled={busy} className={cx(btn.accent, "w-full")}>{busy ? <Spinner className="text-indigo-950" /> : mode === "signin" ? a.signIn : a.signUp}</button>

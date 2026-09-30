@@ -8,6 +8,7 @@ import { auth, firebaseReady } from "@/lib/firebase";
 import { useAuth } from "@/components/auth";
 import { btn, Card, cx, input, Logo, Spinner } from "@/components/ui";
 import { toast } from "@/components/toast";
+import { PasswordInput } from "@/components/password-input";
 
 // Officials only: accounts are created in Firebase Console, roles assigned by a superadmin. No sign-up here.
 export default function OfficialLogin() {
@@ -59,7 +60,7 @@ export default function OfficialLogin() {
         ) : (
           <form onSubmit={submit} className="mt-6 space-y-3">
             <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Official email" autoComplete="username" className={input} />
-            <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" autoComplete="current-password" className={input} />
+            <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" autoComplete="current-password" />
             {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
             <button disabled={busy} className={cx(btn.primary, "w-full")}>{busy ? <Spinner className="text-white" /> : "Sign in"}</button>
             <button type="button" onClick={reset} className="w-full text-center text-sm text-slate-500 hover:text-indigo-950">Forgot password?</button>
