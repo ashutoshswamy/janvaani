@@ -1,5 +1,7 @@
 # JanVaani
 
+![JanVaani](public/og-image.png)
+
 Citizens raise development requests (water, roads, health, schools, electricity, sanitation) by voice or text, in their own language. Gemini transcribes, translates, categorises and scores urgency. Government officials see live requests for their area, update status, and publish announcements back to citizens.
 
 - **Citizens**: sign in, raise a request (voice, text, photo, location), track its status, read announcements, get push notifications.
@@ -269,3 +271,10 @@ Any Node host works (e.g. Vercel):
 - **Settings** switches are placeholders.
 - AI Insights reads the newest 400 requests per area; Overview loads the whole area in the browser. Fine for a pilot; move to server-side aggregates at ~10k requests per area.
 - Geocoding uses the public Nominatim service (≤1 request/second policy); self-host or use a paid geocoder at scale.
+
+## 10. Team
+
+Built by **Team Mainframe Hustlers**:
+
+- [Ashutosh Swamy](https://github.com/ashutoshswamy)
+- [Sairaj Dhuri](https://github.com/sairajdhuri)
