@@ -56,6 +56,7 @@ export function authErrorKey(e: unknown) {
   if (["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found", "auth/invalid-email"].includes(code)) return "errBadCreds";
   if (code === "auth/email-already-in-use") return "errInUse";
   if (code === "auth/weak-password") return "errWeak";
+  if (code === "auth/popup-blocked") return "errPopup";
   console.error("Auth error:", e); // generic message hides the cause; keep it findable in devtools
   return "errGeneric";
 }
