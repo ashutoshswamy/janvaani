@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   GoogleAuthProvider,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   updateProfile,
 } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -40,6 +41,11 @@ export default function Login() {
   useEffect(() => {
     if (user && profile) router.replace("/citizen");
   }, [user, profile, router]);
+
+  // Surface errors from a Google redirect sign-in; success is picked up by onAuthStateChanged.
+  useEffect(() => {
+    if (firebaseReady) getRedirectResult(auth).catch((e) => setError(authErrorKey(e) as keyof typeof a));
+  }, []);
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -121,7 +127,7 @@ export default function Login() {
       <h1 className="text-xl font-bold text-indigo-950">{a.welcome}</h1>
       <p className="mt-1 text-sm text-slate-500">{a.welcomeSub}</p>
 
-      <button onClick={() => run(() => signInWithPopup(auth, new GoogleAuthProvider()))} disabled={busy} className={cx(btn.outline, "mt-6 w-full")}>
+      <button onClick={() => run(() => signInWithRedirect(auth, new GoogleAuthProvider()))} disabled={busy} className={cx(btn.outline, "mt-6 w-full")}>
         <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
           <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
           <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
