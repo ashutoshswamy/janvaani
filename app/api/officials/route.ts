@@ -1,5 +1,5 @@
-import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { INDIA_DISTRICTS } from "@/lib/mock-data";
+import { adminAuth, adminDb, rateLimit, validId } from "@/lib/firebase-admin";
+import { districtsOf } from "@/lib/mock-data";
 
 // Superadmin-only management of admin roles. Roles live in Firebase custom claims
 // (tamper-proof, readable in security rules); officials/{uid} mirrors them for listing.
@@ -27,10 +27,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const me = await superadmin(req);
   if (!me) return json({ error: "Superadmin only" }, 403);
+  const limited = await rateLimit("officials", me.uid, 60, 3600);
+  if (limited) return limited;
 
   const { email, state, district } = await req.json().catch(() => ({}));
-  const districts = typeof state === "string" ? INDIA_DISTRICTS[state] : undefined;
-  if (typeof email !== "string" || !email.includes("@") || !districts || (district && !districts.includes(district)))
+  const districts = districtsOf(state);
+  if (typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+$/.test(email.trim()) || !districts || (district && !districts.includes(district)))
     return json({ error: "A valid email, state and (optional) district are required." }, 400);
 
   const user = await adminAuth().getUserByEmail(email.trim().toLowerCase()).catch(() => null);
@@ -46,9 +48,12 @@ export async function POST(req: Request) {
 
 /** Remove the admin role. Signs the user out everywhere. */
 export async function DELETE(req: Request) {
-  if (!(await superadmin(req))) return json({ error: "Superadmin only" }, 403);
+  const me = await superadmin(req);
+  if (!me) return json({ error: "Superadmin only" }, 403);
+  const limited = await rateLimit("officials", me.uid, 60, 3600);
+  if (limited) return limited;
   const { uid } = await req.json().catch(() => ({}));
-  if (typeof uid !== "string") return json({ error: "uid required" }, 400);
+  if (!validId(uid)) return json({ error: "uid required" }, 400);
 
   const user = await adminAuth().getUser(uid).catch(() => null);
   if (!user) return json({ error: "User not found" }, 404);

@@ -9,6 +9,8 @@ export const CATEGORIES: Category[] = ["Water", "Roads", "Health", "Education", 
 export const STATUSES: Status[] = ["Submitted", "Under Review", "Action Planned", "Resolved"];
 export const INDIA_DISTRICTS: Record<string, string[]> = INDIA;
 export const STATES = Object.keys(INDIA_DISTRICTS);
+/** Districts of a known state, else undefined. Own-key check so "constructor" etc. aren't treated as states. */
+export const districtsOf = (state: unknown) => (typeof state === "string" && Object.hasOwn(INDIA_DISTRICTS, state) ? INDIA_DISTRICTS[state] : undefined);
 
 // totalRequests / resolved are sample figures (the landing page labels them); states, districts are real counts.
 export const STATS = {

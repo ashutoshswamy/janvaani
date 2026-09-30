@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
-import { adminDb, caller, json } from "@/lib/firebase-admin";
+import { adminDb, caller, json, rateLimit } from "@/lib/firebase-admin";
 import { gemini, str } from "@/lib/gemini";
-import { CATEGORIES, INDIA_DISTRICTS } from "@/lib/mock-data";
+import { CATEGORIES, districtsOf } from "@/lib/mock-data";
 
 const MAX_PHOTO = 10 * 1024 * 1024;
 
@@ -82,11 +82,13 @@ const RECEIVED = { en: "Request received.", hi: "अनुरोध प्रा
 export async function POST(req: Request) {
   const me = await caller(req);
   if (!me) return json({ error: "Sign in required" }, 401);
+  const limited = await rateLimit("submit", me.uid, 10, 3600);
+  if (limited) return limited;
 
   const form = await req.formData().catch(() => null);
   const [text, state, district, place, photo] = ["text", "state", "district", "place", "photo"].map((k) => form?.get(k));
   if (typeof text !== "string" || !text.trim() || text.length > 5000) return json({ error: "Text required (max 5000 chars)" }, 400);
-  if (typeof state !== "string" || typeof district !== "string" || !INDIA_DISTRICTS[state]?.includes(district)) return json({ error: "Valid state and district required" }, 400);
+  if (typeof state !== "string" || typeof district !== "string" || !districtsOf(state)?.includes(district)) return json({ error: "Valid state and district required" }, 400);
   if (typeof place !== "string" || place.length > 100) return json({ error: "Place too long" }, 400);
   if (photo && (!(photo instanceof File) || !photo.type.startsWith("image/") || photo.size > MAX_PHOTO)) return json({ error: "Photo must be an image under 10 MB" }, 400);
   const lat = coord(form?.get("lat"), 90);

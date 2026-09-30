@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { inArea } from "@/lib/area";
-import { adminDb, caller, json, officialOf } from "@/lib/firebase-admin";
+import { adminDb, caller, json, officialOf, rateLimit, validId } from "@/lib/firebase-admin";
 import { STATUSES, type Status } from "@/lib/mock-data";
 import { pushToUser } from "@/lib/push";
 
@@ -10,10 +10,14 @@ import { pushToUser } from "@/lib/push";
  *  - internalNote: officials-only, stored in requestNotes/{id}.
  */
 export async function POST(req: Request, ctx: RouteContext<"/api/requests/[id]">) {
-  const official = officialOf(await caller(req));
-  if (!official) return json({ error: "Officials only" }, 403);
+  const me = await caller(req);
+  const official = officialOf(me);
+  if (!me || !official) return json({ error: "Officials only" }, 403);
+  const limited = await rateLimit("update", me.uid, 300, 3600);
+  if (limited) return limited;
 
   const { id } = await ctx.params;
+  if (!validId(id)) return json({ error: "Not found in your area" }, 404);
   const ref = adminDb().collection("requests").doc(id);
   const snap = await ref.get();
   const r = snap.data();

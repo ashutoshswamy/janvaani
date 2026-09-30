@@ -1,12 +1,14 @@
-import { adminAuth } from "@/lib/firebase-admin";
+import { caller, rateLimit } from "@/lib/firebase-admin";
 
 const MODEL = "gemini-3.5-transcribe";
 const MAX_AUDIO = 15 * 1024 * 1024; // Gemini inline data caps the whole request at 20 MB
 
 /** Voice → text in the speaker's own language and script. */
 export async function POST(req: Request) {
-  const token = req.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
-  if (!token || !(await adminAuth().verifyIdToken(token).catch(() => null))) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const me = await caller(req);
+  if (!me) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const limited = await rateLimit("transcribe", me.uid, 30, 3600);
+  if (limited) return limited;
 
   const audio = (await req.formData().catch(() => null))?.get("audio");
   if (!(audio instanceof File) || !audio.type.startsWith("audio/") || !audio.size || audio.size > MAX_AUDIO)
